@@ -43,7 +43,7 @@ $ python -m flask run
 
 ### Usage
 
-To use the app the first step is to create an account and log in. Once logged in, the user can start adding habits by giving a name and its frequency. In the home page the user can keep weekly track of their habits, by checking when concluded on that particular day of the week. It is also possible to edit and delete existing habits.
+To use the app the first step is to create an account and log in. Once logged in, the user can start adding habits by giving a name, its frequency, and add any other notes. In the home page the user can keep weekly track of their habits, by checking when concluded on that particular day of the week. It is also possible to edit and delete existing habits. Notes can be viewed on the habits manager page or if hovering over the habit name.
 
 ### Implementation overview
 
@@ -89,6 +89,3 @@ There are three tables in the database: user, habit and checkbox. The last one i
 
   - `"/"`: thats the `index.html` route, in which a table with the habits and checkboxes in the days of the week corresponding to its frequency is displayed. For that, the route needs to return data from the checkbox and habit tables corresponding to the user of the current session. In addition, the logged in user's name and the current date are also provided as parameters.
 
-#### Video demo: https://youtu.be/_cSq8iq5VMQ
-
-_My name is Luana, and this was my final project for CS50!_
