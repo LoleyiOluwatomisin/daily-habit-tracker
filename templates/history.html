@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}History{% endblock %}
+
+{% block main %}
+<main class="d-flex flex-column align-items-center" style="padding-top: 8rem; padding-bottom: 4rem;">
+  <div class="container" style="max-width: 820px;">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 class="text-light m-0">Habit History</h3>
+      <a href="/" class="text-warning text-decoration-none">← Back to tracker</a>
+    </div>
+
+    <!-- Month navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <a href="/history?year={{ prev_year }}&month={{ prev_month }}"
+         class="btn btn-outline-warning btn-sm">&#8592; Prev</a>
+      <h4 class="text-warning m-0">{{ month_name }}</h4>
+      <a href="/history?year={{ next_year }}&month={{ next_month }}"
+         class="btn btn-outline-warning btn-sm">Next &#8594;</a>
+    </div>
+
+    <!-- Legend -->
+    {% if habits %}
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      {% set colors = ["#ffc107","#0dcaf0","#198754","#d63384","#fd7e14","#6f42c1","#20c997","#0d6efd","#dc3545","#adb5bd"] %}
+      {% for hid, hname in habits.items() %}
+      {% set color = colors[loop.index0 % colors|length] %}
+      <span class="badge rounded-pill" style="background-color: {{ color }}; font-size:.75rem;">
+        {{ hname }}
+      </span>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Calendar grid -->
+    <div class="calendar-grid">
+      <!-- Day headers -->
+      <div class="cal-header-row">
+        {% for dname in ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"] %}
+        <div class="cal-header-cell text-warning">{{ dname }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Weeks -->
+      {% set colors = ["#ffc107","#0dcaf0","#198754","#d63384","#fd7e14","#6f42c1","#20c997","#0d6efd","#dc3545","#adb5bd"] %}
+      {% set habit_list = habits.items() | list %}
+      {% for week in weeks %}
+      <div class="cal-week-row">
+        {% for day in week %}
+        {% set day_str = day.isoformat() %}
+        {% set is_today = (day == today) %}
+        {% set in_month = (day.month == current_month) %}
+        {% set day_habits = completions.get(day_str, []) %}
+        {% set completion_count = day_habits | length %}
+        {# Convert Python weekday (Mon=0..Sun=6) to app day (Sun=0..Sat=6) #}
+        {% set app_day = (day.weekday() + 1) % 7 %}
+        {% set scheduled = habits_by_appday[app_day] %}
+        {% set total_scheduled = scheduled | length %}
+        {% set pct = (completion_count / total_scheduled * 100) | int if total_scheduled > 0 else 0 %}
+
+        <div class="cal-day {{ 'today' if is_today }} {{ 'other-month' if not in_month }}"
+             {% if day_habits %}
+             data-bs-toggle="tooltip"
+             data-bs-placement="top"
+             title="{{ day_habits | join(', ') }}"
+             {% endif %}>
+
+          <div class="cal-day-num {{ 'text-warning fw-bold' if is_today else '' }}">
+            {{ day.day }}
+          </div>
+
+          {% if in_month and day_habits %}
+          <!-- Dot indicators per habit -->
+          <div class="cal-dots">
+            {% for hid, hname in habit_list %}
+              {% if hname in day_habits %}
+              <span class="cal-dot" style="background-color: {{ colors[loop.index0 % colors|length] }};"></span>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <!-- Completion fill bar -->
+          {% if total_scheduled > 0 %}
+          <div class="cal-fill-bar">
+            <div class="cal-fill-inner" style="width: {{ pct }}%; background-color: {{ '#198754' if pct == 100 else '#ffc107' }};"></div>
+          </div>
+          {% endif %}
+          {% endif %}
+
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Summary for the month -->
+    <div class="mt-4 text-light">
+      <h5 class="mb-3">Monthly Summary</h5>
+      <div class="row g-3">
+        {% for hid, hname in habits.items() %}
+        {% set habit_days = [] %}
+        {% for d, names in completions.items() %}
+          {% if hname in names %}
+            {% set _ = habit_days.append(d) %}
+          {% endif %}
+        {% endfor %}
+        {% set color = colors[loop.index0 % colors|length] %}
+        <div class="col-12 col-sm-6 col-md-4">
+          <div class="summary-card" style="border-left: 4px solid {{ color }};">
+            <div class="fw-bold" style="color: {{ color }};">{{ hname }}</div>
+            <div class="text-light mt-1">
+              <span class="h4">{{ habit_days | length }}</span>
+              <span class="text-secondary"> / {{ today.day if today.month == current_month else (completions | length) }} days</span>
+            </div>
+            <div class="progress mt-2" style="height: .35rem; background-color: #495057;">
+              {% set days_in_month = today.day if today.month == current_month else 31 %}
+              <div class="progress-bar" style="width: {{ [(habit_days|length / days_in_month * 100)|int, 100]|min }}%; background-color: {{ color }};"></div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<style>
+.calendar-grid {
+  border: 1px solid #495057;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cal-header-row, .cal-week-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.cal-header-cell {
+  text-align: center;
+  padding: .5rem 0;
+  font-weight: 600;
+  font-size: .8rem;
+  background-color: #2c3034;
+  border-bottom: 1px solid #495057;
+}
+
+.cal-day {
+  min-height: 80px;
+  padding: .4rem .5rem;
+  border: 1px solid #2c3034;
+  background-color: #343a40;
+  transition: background-color .15s;
+  cursor: default;
+  position: relative;
+}
+
+.cal-day:hover {
+  background-color: #3d444c;
+}
+
+.cal-day.today {
+  background-color: #3a3200;
+  border-color: #ffc107;
+}
+
+.cal-day.other-month .cal-day-num {
+  color: #495057 !important;
+}
+
+.cal-day.other-month {
+  background-color: #2c3034;
+}
+
+.cal-day-num {
+  font-size: .8rem;
+  color: #adb5bd;
+  margin-bottom: .3rem;
+}
+
+.cal-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-bottom: .25rem;
+}
+
+.cal-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.cal-fill-bar {
+  height: 3px;
+  background-color: #495057;
+  border-radius: 2px;
+  overflow: hidden;
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  right: 5px;
+}
+
+.cal-fill-inner {
+  height: 100%;
+  border-radius: 2px;
+  transition: width .3s;
+}
+
+.summary-card {
+  background-color: #2c3034;
+  border-radius: 6px;
+  padding: .85rem 1rem;
+  height: 100%;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var tooltipTriggerList = [].slice.call(
+    document.querySelectorAll('[data-bs-toggle="tooltip"]')
+  );
+  tooltipTriggerList.map(function (el) {
+    return new bootstrap.Tooltip(el, { delay: { show: 100, hide: 100 } });
+  });
+});
+</script>
+{% endblock %}

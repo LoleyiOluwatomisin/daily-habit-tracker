@@ -36,8 +36,13 @@ Home
                     {% for day in days %}
                     <td>
                         {% if day in habit.frequency %}
-                        {% set id = [day, habit.id] | join(' ') %}
-                        <input type="checkbox" class="form-check-input border-light bg-transparent" style="height: 1.6rem; width: 1.6rem;" id="{{ id }}" {{ checks[id] }}>
+                        {% set col_date = day_dates[day] %}
+                        {% set id = [day, habit.id, col_date] | join(' ') %}
+                        <input type="checkbox" class="form-check-input border-light bg-transparent"
+                               style="height: 1.6rem; width: 1.6rem;"
+                               id="{{ id }}"
+                               data-date="{{ col_date }}"
+                               {{ checks.get(id, '') }}>
                         {% endif %}
                     </td>
                     {% endfor %}

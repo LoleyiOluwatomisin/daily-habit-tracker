@@ -15,6 +15,8 @@ checkboxes.forEach((checkbox) => {
     checked += checkbox.checked ? 1 : -1;
     percentage = (checked / checkboxes.length) * 100;
     progressBar.style.width = `${percentage}%`;
+    // Use the actual column date from the data-date attribute
+    const cbDate = checkbox.dataset.date;
     fetch("/", {
       method: "POST",
       headers: {
@@ -24,13 +26,12 @@ checkboxes.forEach((checkbox) => {
       body: JSON.stringify({
         type: "",
         id: checkbox.id,
+        date: cbDate,
         value: e.target.checked ? "checked" : "",
       }),
     })
       .then((res) => {
-        if (!res.ok) {
-          throw Error(res.status);
-        }
+        if (!res.ok) throw Error(res.status);
         return res.json();
       })
       .catch((err) => console.error(err));
@@ -54,9 +55,7 @@ clear.addEventListener("click", (e) => {
     }),
   })
     .then((res) => {
-      if (!res.ok) {
-        throw Error(res.status);
-      }
+      if (!res.ok) throw Error(res.status);
       return res.json();
     })
     .catch((err) => console.error(err));
