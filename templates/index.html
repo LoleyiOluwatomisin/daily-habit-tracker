@@ -30,7 +30,9 @@ Home
             <tbody>
                 {% for habit in habits %}
                 <tr style="line-height: 2rem;">
-                    <th scope="row">{{ habit.name }}</th>
+                    <th scope="row" title="{{ habit.notes }}" data-bs-toggle="tooltip" data-bs-placement="top">
+                        {{ habit.name }}
+                    </th>
                     {% for day in days %}
                     <td>
                         {% if day in habit.frequency %}
@@ -51,6 +53,19 @@ Home
     {% endif %}
     <a class="text-warning" href="/new-habit">Add habit</a>
     <a class="text-warning" href="/habits">Manage habits</a>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    var tooltipTriggerList = [].slice.call(
+        document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    );
+                        
+    tooltipTriggerList.map(function (el) {
+        return new bootstrap.Tooltip(el, {
+            delay: { show: 0, hide: 100 }
+        });
+    });
+});
+</script>
 </main>
 
 <script src="/static/script.js"></script>

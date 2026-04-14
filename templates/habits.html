@@ -17,6 +17,11 @@ Habits
                 <div class="m-3">
                     <div class="fw-bold h5 text-break">{{ habit.name }}</div>
                     <em class="text-light">{{ habit.frequency }}</em>
+                    {% if habit.notes %}
+                        <div class="text-secondary small mt-1">
+                            {{ habit.notes }}
+                        </div>
+                    {% endif %}
                 </div>
                 <div style="min-width: 75px;">
                     <a href="/edit/{{ habit.id }}" class="btn btn-outline-primary btn-sm me-3">Edit</a>

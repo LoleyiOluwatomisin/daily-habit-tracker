@@ -34,6 +34,7 @@ class Habit(db.Model):
     description = db.Column(db.String(100), nullable=False)
     frequency = db.Column(db.String(14), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    notes = db.Column(db.Text)
 
     def __repr__(self):
         return '<Habit %r>' % self.id
@@ -75,7 +76,8 @@ def habit_table(habits):
         {
             "id": habit.id,
             "name": habit.description,
-            "frequency": [int(day) for day in habit.frequency.split()]
+            "frequency": [int(day) for day in habit.frequency.split()],
+            "notes": habit.notes
         } for habit in habits
     ]
 
@@ -155,7 +157,8 @@ def habits_display(habits):
         {
             "id": habit.id,
             "name": habit.description,
-            "frequency": " - ".join([days[int(day)] for day in habit.frequency.split()])
+            "frequency": " - ".join([days[int(day)] for day in habit.frequency.split()]),
+            "notes": habit.notes        
         } for habit in habits
     ]
 
@@ -178,8 +181,9 @@ def new_habit():
             flash("Invalid name and/or frequency...")
             return redirect("/new-habit")
         frequency_str = " ".join(request.form.getlist("frequency"))
+        notes = request.form.get("notes")
         habit = Habit(description=request.form.get("name"),
-                      frequency=frequency_str, user_id=session["user_id"])
+                      frequency=frequency_str, notes=notes, user_id=session["user_id"])
         db.session.add(habit)
         db.session.flush()
         db.session.refresh(habit)
@@ -197,7 +201,8 @@ def habit_edit(habit):
     return {
         "id": habit.id,
         "name": habit.description,
-        "frequency": ["checked" if str(i) in habit.frequency.split() else "" for i in range(7)]
+        "frequency": ["checked" if str(i) in habit.frequency.split() else "" for i in range(7)],
+        "notes": habit.notes
     }
 
 
@@ -213,6 +218,7 @@ def edit(id):
         habit.description = request.form.get("name")
         frequency_str = " ".join(request.form.getlist("frequency"))
         habit.frequency = frequency_str
+        habit.notes = request.form.get("notes")
         try:
             db.session.commit()
             return redirect("/")
