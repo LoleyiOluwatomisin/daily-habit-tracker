@@ -5,26 +5,29 @@ New habit
 {% endblock %}
 
 {% block main %}
-<main class="d-flex flex-column align-items-center justify-content-center">
-    <h3 class="text-light mx-5 px-4">Habit</h3>
-    <form class="m-5 justify-content-center" action="/new-habit" method="post">
-        <div class="input-group mb-3">
-            <input type="text" class="form-control" placeholder="Name" id="name" name="name" autofocus>
-        </div>
-        <p class="text-light m-1 p-1">Frequency</p>
-        {% for day in days %}
-        <input type="checkbox" class="btn-check" id="{{ day }}" name="frequency" autocomplete="off" value="{{ day }}">
-        <label class="btn btn-outline-light m-1" for="{{ day }}">{{ days[day] }}</label>
-        {% endfor %}
-        <p class="text-light m-1 p-1">Notes</p>
-        <div class="input-group mb-3">
-            <input type="text" class="form-control" name="notes" id="notes" placeholder="Type your notes here..." rows="3" autofocus >
-        </div>
-        <div class="d-flex justify-content-center w-100 my-4">
-            <button type="submit" class="btn btn-outline-warning w-25 btn-lg">Save</button>
-        </div>
-        
-    </form>
+<form action="/new-habit" method="post">
+    <div class="mb-3">
+        <label for="name" class="form-label">Habit</label>
+        <input class="form-control" id="name" name="name" placeholder="Enter habit name" type="text" required>
+    </div>
 
-</main>
+    <div class="mb-3">
+        <label class="form-label">Frequency</label><br>
+        {% for day in days %}
+            <input type="checkbox" class="btn-check" name="frequency" value="{{ day }}" id="day{{ day }}">
+            <label class="btn btn-outline-primary me-1 mb-1" for="day{{ day }}">{{ days[day] }}</label>
+        {% endfor %}
+    </div>
+
+    <div class="mb-3">
+        <label for="time_of_day" class="form-label">Time</label>
+        <select class="form-select" id="time_of_day" name="time_of_day" required>
+            {% for time in time_options %}
+                <option value="{{ time }}">{{ time }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Save</button>
+</form>
 {% endblock %}
