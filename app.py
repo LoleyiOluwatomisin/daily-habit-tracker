@@ -100,6 +100,7 @@ def habit_table(habits):
             "id": habit.id,
             "name": habit.description,
             "frequency": [int(day) for day in habit.frequency.split()],
+            "time_of_day": habit.time_of_day,
             "notes": habit.notes
         } for habit in habits
     ]
@@ -213,7 +214,7 @@ def habits_display(habits):
             "id": habit.id,
             "name": habit.description,
             "frequency": " - ".join([days[int(day)] for day in habit.frequency.split()]),
-            "notes": habit.notes        
+            "notes": habit.notes, 
             "time_of_day": habit.time_of_day
         } for habit in habits
     ]
