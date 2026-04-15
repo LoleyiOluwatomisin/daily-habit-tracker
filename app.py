@@ -35,6 +35,7 @@ class Habit(db.Model):
     description = db.Column(db.String(100), nullable=False)
     frequency = db.Column(db.String(14), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    time_of_day = db.Column(db.String(20), nullable=False, default="9:00 AM")
     notes = db.Column(db.Text)
 
     def __repr__(self):
@@ -45,7 +46,6 @@ class Checkbox(db.Model):
     id = db.Column(db.String(20), primary_key=True)
     value = db.Column(db.String(8), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    time_of_day = db.Column(db.String(20), nullable=False, default="9:00 AM")
     date = db.Column(db.String(10), nullable=False, default="")
 
     def __repr__(self):
