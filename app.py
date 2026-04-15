@@ -101,6 +101,7 @@ def habit_table(habits):
             "name": habit.description,
             "frequency": [int(day) for day in habit.frequency.split()],
             "notes": habit.notes
+            "time_of_day": habit.time_of_day
         } for habit in habits
     ]
 
@@ -214,6 +215,7 @@ def habits_display(habits):
             "name": habit.description,
             "frequency": " - ".join([days[int(day)] for day in habit.frequency.split()]),
             "notes": habit.notes        
+            "time_of_day": habit.time_of_day
         } for habit in habits
     ]
 
@@ -238,7 +240,7 @@ def new_habit():
         frequency_str = " ".join(request.form.getlist("frequency"))
         notes = request.form.get("notes")
         habit = Habit(description=request.form.get("name"),
-                      frequency=frequency_str, notes=notes, user_id=session["user_id"])
+                      frequency=frequency_str, notes=notes, time_of_day=request.form.get("time_of_day"), user_id=session["user_id"])
         db.session.add(habit)
         db.session.flush()
         db.session.refresh(habit)
@@ -250,13 +252,14 @@ def new_habit():
         
         return redirect("/")
     else:
-        return render_template("new-habit.html", days=days)
+        return render_template("new-habit.html", days=days, time_options=time_options)
 
 
 def habit_edit(habit):
     return {
         "id": habit.id,
         "name": habit.description,
+        "time_of_day": habit.time_of_day,
         "frequency": ["checked" if str(i) in habit.frequency.split() else "" for i in range(7)],
         "notes": habit.notes
     }
@@ -275,6 +278,7 @@ def edit(id):
         frequency_str = " ".join(request.form.getlist("frequency"))
         habit.frequency = frequency_str
         habit.notes = request.form.get("notes")
+        habit.time_of_day = request.form.get("time_of_day")
         try:
             db.session.commit()
             return redirect("/")
@@ -282,7 +286,7 @@ def edit(id):
             flash("There was an error editing the habit...")
             return redirect("/")
     else:
-        return render_template("edit.html", habit=habit_edit(habit), days=days)
+        return render_template("edit.html", habit=habit_edit(habit), days=days, time_options=time_options)
 
 
 @app.route("/delete/<int:id>")
