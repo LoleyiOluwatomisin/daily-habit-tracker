@@ -101,7 +101,6 @@ def habit_table(habits):
             "name": habit.description,
             "frequency": [int(day) for day in habit.frequency.split()],
             "notes": habit.notes
-            "time_of_day": habit.time_of_day
         } for habit in habits
     ]
 
