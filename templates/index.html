@@ -32,6 +32,7 @@ Home
                 <tr style="line-height: 2rem;">
                     <th scope="row" title="{{ habit.notes }}" data-bs-toggle="tooltip" data-bs-placement="top">
                         {{ habit.name }}
+                    <small class="text-muted">{{ habit.time_of_day }}</small>
                     </th>
                     {% for day in days %}
                     <td>
