@@ -51,8 +51,19 @@ class Checkbox(db.Model):
     def __repr__(self):
         return '<Check %r>' % self.id
 
+
+class Settings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
+    browser_reminders = db.Column(db.Boolean, default=False)
+    digest_time = db.Column(db.String(5), default="08:00")  # "HH:MM" 24hr
+
+    def __repr__(self):
+        return '<Settings %r>' % self.user_id
+
 with app.app_context():     
     db.create_all()
+
 
 @app.after_request
 def after_request(response):
@@ -381,6 +392,23 @@ def history():
     cal = calendar.Calendar(firstweekday=0)  # Monday first
     weeks = cal.monthdatescalendar(year, month)
 
+    # Count how many times each habit is scheduled in this month (up to today if current month)
+    cutoff = today if (year == today.year and month == today.month) else last_day
+    habit_possible_days = {}  # habit_name -> count of scheduled days so far this month
+    for h in user_habits:
+        scheduled_appdays = set(int(d) for d in h.frequency.split())
+        count = 0
+        for week in weeks:
+            for d in week:
+                if d.month != month:
+                    continue
+                if d > cutoff:
+                    continue
+                app_day = (d.weekday() + 1) % 7
+                if app_day in scheduled_appdays:
+                    count += 1
+        habit_possible_days[h.description] = count
+
     # Prev/next month navigation
     if month == 1:
         prev_year, prev_month = year - 1, 12
@@ -404,12 +432,33 @@ def history():
         completions=completions,
         habits=habit_map,
         habits_by_appday=habits_by_appday,
+        habit_possible_days=habit_possible_days,
         prev_year=prev_year,
         prev_month=prev_month,
         next_year=next_year,
         next_month=next_month,
         current_month=month,
     )
+
+
+@app.route("/settings", methods=["GET", "POST"])
+def settings():
+    if session.get("user_id") is None:
+        return redirect("/login")
+    user_settings = Settings.query.filter_by(user_id=session["user_id"]).first()
+    if user_settings is None:
+        user_settings = Settings(user_id=session["user_id"])
+        db.session.add(user_settings)
+        db.session.commit()
+
+    if request.method == "POST":
+        user_settings.browser_reminders = "browser_reminders" in request.form
+        user_settings.digest_time = request.form.get("digest_time", "08:00")
+        db.session.commit()
+        flash("Settings saved!")
+        return redirect("/settings")
+
+    return render_template("settings.html", s=user_settings)
 
 
 @app.route("/logout")

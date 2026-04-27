@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block main %}
+<main class="d-flex flex-column align-items-center" style="padding-top: 8rem; padding-bottom: 4rem;">
+  <div class="container" style="max-width: 560px;">
+
+    <h3 class="text-light mb-4">Notification Settings</h3>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/settings">
+
+      <!-- Digest Time -->
+      <div class="card bg-dark border-secondary mb-4">
+        <div class="card-body">
+          <h5 class="text-warning mb-3">⏰ Daily Digest Time</h5>
+          <p class="text-secondary small mb-3">Choose what time you want your daily browser notification each day.</p>
+          <input type="time" class="form-control bg-dark text-light border-secondary"
+                 name="digest_time" id="digest_time"
+                 value="{{ s.digest_time or '08:00' }}">
+        </div>
+      </div>
+
+      <!-- Browser Notifications -->
+      <div class="card bg-dark border-secondary mb-4">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="text-warning m-0">🔔 Browser Notifications</h5>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch"
+                     name="browser_reminders" id="browser_reminders"
+                     {% if s.browser_reminders %}checked{% endif %}>
+            </div>
+          </div>
+          <p class="text-secondary small mb-3">
+            Get a pop-up notification in your browser at your chosen digest time. Your browser will ask for permission the first time.
+          </p>
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="test-browser-btn">
+            Send test notification
+          </button>
+          <span id="notif-status" class="text-secondary small ms-2"></span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-warning w-100">Save Settings</button>
+    </form>
+
+  </div>
+</main>
+
+<script>
+const browserSwitch = document.getElementById("browser_reminders");
+const digestTimeInput = document.getElementById("digest_time");
+const testBtn = document.getElementById("test-browser-btn");
+const statusEl = document.getElementById("notif-status");
+
+testBtn.addEventListener("click", async () => {
+  if (!("Notification" in window)) {
+    statusEl.textContent = "Your browser doesn't support notifications.";
+    return;
+  }
+  const permission = await Notification.requestPermission();
+  if (permission === "granted") {
+    new Notification("Daily Habit Tracker", {
+      body: "Test notification — your reminders are working!",
+      icon: "/static/favicon.ico"
+    });
+    statusEl.textContent = "✓ Notification sent!";
+  } else {
+    statusEl.textContent = "Permission denied. Enable notifications in your browser settings.";
+  }
+});
+
+function checkDigestTime() {
+  if (!("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
+  if (!browserSwitch.checked) return;
+  const digestTime = digestTimeInput.value;
+  if (!digestTime) return;
+  const now = new Date();
+  const [h, m] = digestTime.split(":").map(Number);
+  if (now.getHours() === h && now.getMinutes() === m) {
+    new Notification("Daily Habit Tracker – Habit Reminder", {
+      body: "Time to check in on your habits for today!",
+      icon: "/static/favicon.ico"
+    });
+  }
+}
+
+setInterval(checkDigestTime, 60 * 1000);
+
+if (browserSwitch.checked && "Notification" in window && Notification.permission === "default") {
+  Notification.requestPermission();
+}
+</script>
+{% endblock %}

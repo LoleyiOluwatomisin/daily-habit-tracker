@@ -107,16 +107,16 @@
           {% endif %}
         {% endfor %}
         {% set color = colors[loop.index0 % colors|length] %}
+        {% set possible = habit_possible_days.get(hname, 1) %}
         <div class="col-12 col-sm-6 col-md-4">
           <div class="summary-card" style="border-left: 4px solid {{ color }};">
             <div class="fw-bold" style="color: {{ color }};">{{ hname }}</div>
             <div class="text-light mt-1">
               <span class="h4">{{ habit_days | length }}</span>
-              <span class="text-secondary"> / {{ today.day if today.month == current_month else (completions | length) }} days</span>
+              <span class="text-secondary"> / {{ possible }} days</span>
             </div>
             <div class="progress mt-2" style="height: .35rem; background-color: #495057;">
-              {% set days_in_month = today.day if today.month == current_month else 31 %}
-              <div class="progress-bar" style="width: {{ [(habit_days|length / days_in_month * 100)|int, 100]|min }}%; background-color: {{ color }};"></div>
+              <div class="progress-bar" style="width: {{ [(habit_days|length / possible * 100)|int, 100]|min if possible > 0 else 0 }}%; background-color: {{ color }};"></div>
             </div>
           </div>
         </div>
