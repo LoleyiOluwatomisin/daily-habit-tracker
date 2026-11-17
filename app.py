@@ -345,6 +345,10 @@ def history():
     year = request.args.get("year", today.year, type=int)
     month = request.args.get("month", today.month, type=int)
 
+    if not 1 <= year <= 9999 or not 1 <= month <= 12:
+        flash("Please choose a valid month and year.")
+        return redirect("/history")
+
     # Build date range for the requested month
     first_day = date(year, month, 1)
     last_day = date(year, month, calendar.monthrange(year, month)[1])
@@ -390,7 +394,11 @@ def history():
 
     # Build calendar weeks for the template
     cal = calendar.Calendar(firstweekday=0)  # Monday first
-    weeks = cal.monthdatescalendar(year, month)
+    try:
+        weeks = cal.monthdatescalendar(year, month)
+    except (ValueError, OverflowError):
+        flash("This month is outside the supported calendar range.")
+        return redirect("/history")
 
     # Count how many times each habit is scheduled in this month (up to today if current month)
     cutoff = today if (year == today.year and month == today.month) else last_day
